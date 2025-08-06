@@ -1,5 +1,5 @@
 export interface Message {
-  id: string;
+  id?: string;
   content?: string;
   sender: "user" | "bot";
   timestamp: Date;
@@ -21,4 +21,5 @@ export interface ChatPageProps {
   title?: string;
   placeholder?: string;
   initialMessages?: Message[];
+  params: Promise<{ id: string }>;
 }

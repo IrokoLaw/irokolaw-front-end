@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { Message } from "@/utils/types/chat";
 import { Bot, Mic, Pause, Play, User, Volume2 } from "lucide-react";
+import MarkdownMessage from "./markdown";
 
 interface MessageBubbleProps {
   message: Message;
@@ -119,7 +120,11 @@ export function MessageBubble({
                 )}
               </div>
             ) : (
-              <p className="text-sm">{message.content}</p>
+              <div className="">
+                <MarkdownMessage
+                  answer={message.content ?? ""}
+                ></MarkdownMessage>
+              </div>
             )}
             <div className="flex items-center justify-between mt-2">
               <span className="text-xs opacity-70">
@@ -129,11 +134,11 @@ export function MessageBubble({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() =>
-                    message.isPlaying
-                      ? onPauseAudio(message.id)
-                      : onPlayAudio(message.id, message.content!)
-                  }
+                  // onClick={() =>
+                  //   message.isPlaying
+                  //     ? onPauseAudio(message.id)
+                  //     : onPlayAudio(message.id, message.content!)
+                  // }
                   className="h-6 w-6 p-0"
                 >
                   {message.isPlaying ? (

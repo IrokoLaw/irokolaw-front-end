@@ -23,6 +23,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cookies-next": "^6.1.0",
+    "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.536.0",
     "markdown-to-jsx": "^7.7.13",
@@ -30,13 +31,15 @@
     "pdfjs-dist": "4.8.69",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-pdf": "^9.2.1",
     "remark": "^15.0.1",
     "remark-extract-frontmatter": "^3.2.0",
     "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.0.14"
+    "zod": "^4.0.14",
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

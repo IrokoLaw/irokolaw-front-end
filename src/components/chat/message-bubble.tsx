@@ -5,9 +5,18 @@ import { Card } from "@/components/ui/card";
 import type { Message } from "@/utils/types/chat";
 import { Bot, Mic, Pause, Play, User, Volume2 } from "lucide-react";
 import MarkdownMessage from "./markdown";
+import { useQueries } from "@tanstack/react-query";
+import { useSelectedReference } from "../store/selected-reference";
+import { useChat } from "@/api/get-chat-in-discussion";
+import { useMemo, useRef } from "react";
+import { getSource } from "@/api/get-source-in-chat";
+import { Source } from "@/types/api";
+import useDisclosure from "@/hooks/use-disclosure";
+import { DiscussionContent } from "./discussion-viewer";
 
 interface MessageBubbleProps {
   message: Message;
+  discussionId: string;
   onPlayAudio: (messageId: string, content: string) => void;
   onPauseAudio: (messageId: string) => void;
   onPlayRecordedAudio: (messageId: string, audioUrl: string) => void;
@@ -20,15 +29,58 @@ export function MessageBubble({
   onPauseAudio,
   onPlayRecordedAudio,
   formatDuration,
+  discussionId,
 }: MessageBubbleProps) {
   const isUser = message.sender === "user";
   const isAudioMessage = message.type === "audio";
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useChat({
+    discussionId,
+  });
+
+  const { selectedReference, setSelectedReference, chatId } =
+    useSelectedReference();
+  const { isOpen, onOpen, onClose } = useDisclosure(false);
+  const messageEnd = useRef<HTMLDivElement | null>(null);
+
+  // get data of a page
+  const chatData = data?.pages.flatMap((page) => page.data) || [];
+
+  const sourcesQueries = useQueries({
+    queries: useMemo(() => {
+      return chatData.map((chat) => ({
+        queryKey: ["source", chat.id],
+        queryFn: () => getSource({ chatId: chat.id }),
+        enabled: Boolean(chat.id),
+      }));
+    }, [chatData]),
+  });
+
+  const handleOpenDocument = (source: Source, chatId: string) => {
+    setSelectedReference(source.reference || source.id, chatId);
+    onOpen();
+  };
+
+  // Synchronize the source with the selected reference in the Markdown
+  const resolvedSource: Source | undefined = useMemo(() => {
+    if (typeof selectedReference === "string" && chatId) {
+      const chatIndex = chatData.findIndex((chat) => chat.id === chatId);
+      if (chatIndex === -1) return;
+      const chatSources = sourcesQueries[chatIndex]?.data?.data || [];
+      return chatSources.find(
+        (source) =>
+          source?.reference === selectedReference ||
+          source?.id === selectedReference
+      );
+    }
+    return;
+  }, [selectedReference, chatId, chatData, sourcesQueries]);
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
       <Card
         className={`max-w-[80%] p-3 ${
-          isUser ? "bg-primary text-primary-foreground" : "bg-muted"
+          isUser ? "bg-primary  text-primary-foreground" : "bg-muted"
         }`}
       >
         <div className="flex items-start space-x-2">
@@ -39,7 +91,7 @@ export function MessageBubble({
               <Bot className="w-4 h-4 mt-1" />
             )}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 text-white">
             {isAudioMessage ? (
               <div className="space-y-2">
                 <div className="flex items-center space-x-2 mb-2">
@@ -121,9 +173,23 @@ export function MessageBubble({
               </div>
             ) : (
               <div className="">
-                <MarkdownMessage
-                  answer={message.content ?? ""}
-                ></MarkdownMessage>
+                {chatData.length > 0 ? (
+                  <div className="mt-2">
+                    <DiscussionContent
+                      messageEndRef={messageEnd}
+                      chatData={chatData}
+                      sourcesQueries={sourcesQueries}
+                      handleOpenDocument={handleOpenDocument}
+                      onOpen={onOpen}
+                      hasNextPage={hasNextPage}
+                      isFetchingNextPage={isFetchingNextPage}
+                    />
+                  </div>
+                ) : (
+                  <MarkdownMessage
+                    answer={message.content ?? ""}
+                  ></MarkdownMessage>
+                )}
               </div>
             )}
             <div className="flex items-center justify-between mt-2">

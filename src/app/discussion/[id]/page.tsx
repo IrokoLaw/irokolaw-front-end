@@ -81,10 +81,11 @@ const ChatPage: React.FC<ChatPageProps> = ({
 
     try {
       // Remplacez cette URL par votre endpoint d'API pour GCS
-      const response = await fetch(`${env.API_URL}/chats/upload`, {
+      const response = await fetch(`${env.API_URL}/chats/upload/audio`, {
         method: "POST",
         body: formData,
       });
+      console.log("Réponse du téléversement:", response);
 
       if (!response.ok) {
         throw new Error(`Erreur lors du téléversement: ${response.statusText}`);
@@ -142,44 +143,44 @@ const ChatPage: React.FC<ChatPageProps> = ({
   }, [messages, isTyping, shouldAutoScroll, scrollToBottom]);
 
   // Charger les messages depuis localStorage
-  useEffect(() => {
-    const savedMessages = localStorage.getItem("chat-messages");
-    if (savedMessages) {
-      try {
-        const parsed = JSON.parse(savedMessages).map(
-          (msg: { timestamp: string | number | Date }) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-            audioUrl: undefined,
-          })
-        );
-        setMessages(parsed);
-        logMessage(
-          "SYSTEM",
-          `${parsed.length} messages chargés depuis le localStorage`
-        );
-      } catch (error) {
-        console.error("Erreur lors du chargement des messages:", error);
-        logMessage("SYSTEM", "Erreur lors du chargement des messages", error);
-      }
-    }
-  }, []);
+  // useEffect(() => {
+  //   const savedMessages = localStorage.getItem("chat-messages");
+  //   if (savedMessages) {
+  //     try {
+  //       const parsed = JSON.parse(savedMessages).map(
+  //         (msg: { timestamp: string | number | Date }) => ({
+  //           ...msg,
+  //           timestamp: new Date(msg.timestamp),
+  //           audioUrl: undefined,
+  //         })
+  //       );
+  //       setMessages(parsed);
+  //       logMessage(
+  //         "SYSTEM",
+  //         `${parsed.length} messages chargés depuis le localStorage`
+  //       );
+  //     } catch (error) {
+  //       console.error("Erreur lors du chargement des messages:", error);
+  //       logMessage("SYSTEM", "Erreur lors du chargement des messages", error);
+  //     }
+  //   }
+  // }, []);
 
   // Sauvegarder les messages
-  useEffect(() => {
-    if (messages.length > 0) {
-      const messagesToSave = messages.map((msg) => ({
-        ...msg,
-        audioUrl: undefined,
-        audioBlob: undefined,
-      }));
-      localStorage.setItem("chat-messages", JSON.stringify(messagesToSave));
-      logMessage(
-        "SYSTEM",
-        `${messages.length} messages sauvegardés dans le localStorage`
-      );
-    }
-  }, [messages]);
+  // useEffect(() => {
+  //   if (messages.length > 0) {
+  //     const messagesToSave = messages.map((msg) => ({
+  //       ...msg,
+  //       audioUrl: undefined,
+  //       audioBlob: undefined,
+  //     }));
+  //     localStorage.setItem("chat-messages", JSON.stringify(messagesToSave));
+  //     logMessage(
+  //       "SYSTEM",
+  //       `${messages.length} messages sauvegardés dans le localStorage`
+  //     );
+  //   }
+  // }, [messages]);
 
   // Nettoyage de l'enregistrement
   const cleanupRecording = () => {
@@ -881,6 +882,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
             onPlayAudio={playMessageAudio}
             onPauseAudio={pauseAudio}
             onPlayRecordedAudio={playRecordedAudio}
+            discussionId={id ?? ""}
             formatDuration={formatDuration}
           />
         ))}
